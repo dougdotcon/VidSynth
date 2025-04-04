@@ -1,114 +1,190 @@
 # Projeto de Transcrição e Resumo de Vídeo
 
 <div align="center">
-  <img src="images/logo.png" alt="Logo do Projeto" width="200">
-
-  [![Python](https://img.shields.io/badge/Python-3.7%2B-blue.svg)](https://www.python.org/)
-  [![Streamlit](https://img.shields.io/badge/Streamlit-1.x-red.svg)](https://streamlit.io/)
-  [![OpenAI](https://img.shields.io/badge/OpenAI-Whisper-green.svg)](https://openai.com/)
-  [![Licença](https://img.shields.io/badge/Licença-CC%20BY--NC--ND%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by-nc-nd/4.0/)
+  <img src="images/logo.png" alt="Logo do Projeto" width="220"/>
+  <h1>Transcrição e Resumo de Vídeo</h1>
+  <p><strong>Uma aplicação para transcrição automática e geração de resumos de vídeos usando IA</strong></p>
 </div>
 
-Este projeto é uma aplicação Streamlit que permite aos usuários fazer upload de vídeos, transcrevê-los automaticamente ou usar uma transcrição fornecida, e gerar resumos no estilo tl;dv. A aplicação também oferece funcionalidades de sincronização entre o resumo e o vídeo.
+<div align="center">
+  <img src="https://img.shields.io/badge/Python-3.7+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/Streamlit-1.x-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit"/>
+  <img src="https://img.shields.io/badge/OpenAI-Whisper-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI"/>
+  <img src="https://img.shields.io/badge/OAuth-Google-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google OAuth"/>
+  <img src="https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey?style=for-the-badge" alt="License"/>
+</div>
 
-## 📋 Índice
+---
 
-- [Funcionalidades](#-funcionalidades)
-- [Requisitos](#-requisitos)
-- [Instalação](#-instalação)
-- [Uso](#-uso)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Contribuindo](#-contribuindo)
-- [Licença](#-licença)
-- [Contato](#-contato)
+## 📋 Sobre o Projeto
+
+Esta aplicação Streamlit oferece uma solução completa para transcrição e resumo de vídeos, permitindo que usuários:
+
+- Façam upload de vídeos em diferentes formatos
+- Obtenham transcrições automáticas usando OpenAI Whisper
+- Gerem resumos no estilo tl;dv
+- Sincronizem o resumo com o vídeo através de timestamps
+- Exportem transcrições e resumos em formato SRT
+
+Ideal para estudantes, profissionais e criadores de conteúdo que precisam extrair informações importantes de vídeos de forma rápida e eficiente.
+
+---
 
 ## 🚀 Funcionalidades
 
-- Upload de vídeo (formatos suportados: mp4, avi, mov)
-- Upload opcional de arquivo de transcrição em formato txt
-- Transcrição automática de vídeo usando OpenAI Whisper
-- Geração de resumo no estilo tl;dv
-- Sincronização entre resumo e vídeo
-- Download de resumo e transcrição completa em formato SRT
-- Autenticação via Google OAuth
+### 📹 Gestão de Vídeos
+- **Upload flexível**: Suporte para formatos mp4, avi e mov
+- **Upload de transcrição**: Possibilidade de usar arquivo txt existente
+- **Visualização integrada**: Player de vídeo com controles
 
-## 📦 Requisitos
+### 🎯 Processamento de Áudio
+- **Transcrição automática**: Integração com OpenAI Whisper
+- **Processamento em lote**: Suporte para múltiplos vídeos
+- **Alta precisão**: Reconhecimento preciso de fala
 
-- Python 3.7+
-- Bibliotecas Python (ver `requirements.txt`)
-- Conta Google Cloud para autenticação OAuth
-- Chave de API do OpenAI
+### 📝 Geração de Conteúdo
+- **Resumos automáticos**: Geração de resumos estilo tl;dv
+- **Timestamps interativos**: Navegação sincronizada no vídeo
+- **Exportação**: Download em formato SRT
 
-## 💻 Instalação
+### 🔐 Segurança e Autenticação
+- **Login Google**: Autenticação via OAuth
+- **Dados seguros**: Proteção das informações do usuário
+- **Gestão de sessão**: Controle de acesso seguro
 
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/matheusbnas/projeto_trancricao_video.git
-   cd projeto_trancricao_video
-   ```
+---
 
-2. Instale as dependências:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 📦 Instalação
 
-3. Configure as variáveis de ambiente:
-   Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-   ```env
-   OPENAI_API_KEY=sua_chave_api_do_openai
-   GOOGLE_CLIENT_ID=seu_client_id_do_google
-   GOOGLE_CLIENT_SECRET=seu_client_secret_do_google
-   REDIRECT_URI=http://localhost:8501/
-   ```
+```bash
+# Clone o repositório
+git clone https://github.com/matheusbnas/projeto_trancricao_video.git
+cd projeto_trancricao_video
 
-## 🎮 Uso
+# Instale as dependências
+pip install -r requirements.txt
 
-1. Execute a aplicação Streamlit:
+# Configure as variáveis de ambiente (.env)
+OPENAI_API_KEY=sua_chave_api_do_openai
+GOOGLE_CLIENT_ID=seu_client_id_do_google
+GOOGLE_CLIENT_SECRET=seu_client_secret_do_google
+REDIRECT_URI=http://localhost:8501/
+```
+
+---
+
+## 💻 Como Usar
+
+1. **Inicie a aplicação**:
    ```bash
    streamlit run transcrita_video.py
    ```
 
-2. Acesse a aplicação através do navegador (geralmente em `http://localhost:8501`).
-3. Faça login com sua conta Google.
-4. Faça upload de um vídeo e, opcionalmente, de um arquivo de transcrição em formato txt.
-5. Se não fornecer uma transcrição, use a opção de transcrição automática.
-6. Visualize o resumo gerado e a transcrição completa.
-7. Use os links de timestamp para navegar no vídeo.
-8. Faça o download do resumo e da transcrição completa em formato SRT.
+2. **Acesse no navegador**: 
+   - Abra `http://localhost:8501`
+   - Faça login com sua conta Google
+
+3. **Processe seu vídeo**:
+   - Faça upload do vídeo
+   - Opcional: forneça arquivo de transcrição
+   - Aguarde o processamento
+   - Visualize e navegue pelo conteúdo
+
+4. **Exporte os resultados**:
+   - Baixe o resumo
+   - Baixe a transcrição completa
+   - Formato SRT com timestamps
+
+---
 
 ## 📁 Estrutura do Projeto
 
-- `transcrita_video.py`: Arquivo principal contendo o código da aplicação Streamlit.
-- `requirements.txt`: Lista de dependências do projeto.
-- `imagens/`: Diretório contendo imagens usadas na aplicação (como o logo do Google).
-- `.env`: Arquivo para armazenar variáveis de ambiente (não incluído no repositório).
+```
+projeto_trancricao_video/
+├── transcrita_video.py    # Aplicação principal
+├── utils.py              # Funções auxiliares
+├── requirements.txt      # Dependências
+├── images/              # Recursos visuais
+│   └── logo.png
+└── .env                 # Configurações (não versionado)
+```
+
+---
+
+## 🧪 Testes
+
+```bash
+# Execute os testes
+python -m pytest
+```
+
+---
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! Por favor, sinta-se à vontade para submeter pull requests ou abrir issues para reportar bugs ou sugerir melhorias. Note que, devido à natureza da licença, todas as contribuições estarão sujeitas aos mesmos termos de licenciamento.
+Contribuições são bem-vindas! Para contribuir:
 
-## 📝 Licença
+1. Fork o projeto
+2. Crie sua Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a Branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+---
+
+## 📄 Licença
 
 Este projeto está licenciado sob a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License (CC BY-NC-ND 4.0).
 
-Isso significa que você é livre para:
-- Compartilhar — copiar e redistribuir o material em qualquer suporte ou formato
+<div align="center">
+  <img src="https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg" alt="CC BY-NC-ND 4.0"/>
+</div>
 
-Sob as seguintes condições:
-- **Atribuição** — Você deve dar o crédito apropriado, fornecer um link para a licença e indicar se mudanças foram feitas.
-- **Não Comercial** — Você não pode usar o material para fins comerciais.
-- **Sem Derivações** — Se você remixar, transformar ou criar a partir do material, você não pode distribuir o material modificado.
-- **Sem restrições adicionais** — Você não pode aplicar termos jurídicos ou medidas de caráter tecnológico que restrinjam legalmente outros de fazerem algo que a licença permita.
+Permissões:
+- ✅ Compartilhamento
+- ❌ Uso comercial
+- ❌ Modificações
+- ❌ Distribuição de modificações
 
-Para ver uma cópia desta licença, visite:
-[http://creativecommons.org/licenses/by-nc-nd/4.0/](http://creativecommons.org/licenses/by-nc-nd/4.0/)
+Para mais detalhes, visite: [Creative Commons BY-NC-ND 4.0](http://creativecommons.org/licenses/by-nc-nd/4.0/)
 
-Para qualquer uso comercial ou modificações no projeto, entre em contato com o autor para obter permissão.
+---
 
-© 2024 Matheus Bernardes Costa do Nascimento. Todos os direitos reservados.
+## 👥 Autores
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/matheusbnas">
+        <img src="https://github.com/matheusbnas.png" width="100px;" alt="Matheus Bernardes"/>
+        <br />
+        <sub><b>Matheus Bernardes</b></sub>
+      </a>
+      <br />
+      <sub>Desenvolvimento inicial</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/dougdotcon">
+        <img src="https://github.com/dougdotcon.png" width="100px;" alt="Douglas Machado"/>
+        <br />
+        <sub><b>Douglas Machado</b></sub>
+      </a>
+      <br />
+      <sub>Desenvolvimento inicial</sub>
+    </td>
+  </tr>
+</table>
+
+---
 
 ## 📬 Contato
 
 Matheus Bernardes Costa do Nascimento - [E-mail](mailto:matheusbnas@gmail.com)
 
 Link do projeto: [https://github.com/matheusbnas/projeto_trancricao_video](https://github.com/matheusbnas/projeto_trancricao_video)
+
+---
+
+<div align="center">
+  <sub>Construído com ❤️ para facilitar a extração de conhecimento de vídeos.</sub>
+</div>
