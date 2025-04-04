@@ -1,0 +1,16 @@
+#variavel de ambiente
+.env
+.venv
+
+#Arquivos seguranca
+.streamlit/
+
+#arquivo temporarios
+temp
+__pycache__
+
+#arquivos de tests
+tests
+
+#arquivos exe
+ffmpeg.exe
