@@ -5,9 +5,6 @@ import os
 import vimeo
 import re
 import logging
-import tempfile
-from moviepy.editor import VideoFileClip
-import requests
 from utils import *
 import math
 
@@ -19,138 +16,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configurações do Vimeo
-VIMEO_ACCESS_TOKEN = st.secrets.get("VIMEO_ACCESS_TOKEN", "")
-VIMEO_CLIENT_ID = st.secrets.get("VIMEO_CLIENT_ID", "")
-VIMEO_CLIENT_SECRET = st.secrets.get("VIMEO_CLIENT_SECRET", "")
+VIMEO_ACCESS_TOKEN = st.secrets["VIMEO_ACCESS_TOKEN"]
+VIMEO_CLIENT_ID = st.secrets["VIMEO_CLIENT_ID"]
+VIMEO_CLIENT_SECRET = st.secrets["VIMEO_CLIENT_SECRET"]
 
-# Inicializar cliente Vimeo se as credenciais estiverem disponíveis
-vimeo_client = None
-if VIMEO_ACCESS_TOKEN and VIMEO_CLIENT_ID and VIMEO_CLIENT_SECRET:
-    try:
-        vimeo_client = vimeo.VimeoClient(
-            token=VIMEO_ACCESS_TOKEN,
-            key=VIMEO_CLIENT_ID,
-            secret=VIMEO_CLIENT_SECRET
-        )
-    except Exception as e:
-        st.warning("Não foi possível inicializar o cliente Vimeo. Alguns recursos podem estar indisponíveis.")
-        logger.warning(f"Erro ao inicializar cliente Vimeo: {str(e)}")
-
-# Configuração do tema padrão
-if 'theme' not in st.session_state:
-    st.session_state.theme = "light"
-
-st.set_page_config(
-    page_title="Assistente de Transcrição de Vídeo",
-    page_icon="🎥",
-    layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items={
-        'Get Help': 'https://matech3d.com.br',
-        'Report a bug': "https://matech3d.com.br/contato",
-        'About': "# Assistente de Transcrição de Vídeo\n"
-                "Desenvolvido por Matech 3D para facilitar a transcrição e resumo de vídeos."
-    }
+# Inicializar cliente Vimeo
+vimeo_client = vimeo.VimeoClient(
+    token=VIMEO_ACCESS_TOKEN,
+    key=VIMEO_CLIENT_ID,
+    secret=VIMEO_CLIENT_SECRET
 )
 
-# Função para alternar o tema
-def toggle_theme():
-    st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
-    # Aplicar tema
-    st.markdown(f"""
-    <script>
-        const doc = window.parent.document;
-        doc.querySelector('html').dataset.theme = "{st.session_state.theme}";
-    </script>
-    """, unsafe_allow_html=True)
-
-# Adicionar CSS customizado
-st.markdown("""
-<style>
-    /* Estilos gerais */
-    .main {
-        padding: 2rem;
-        background-color: #f8f9fa;
-    }
-
-    /* Estilos dos botões */
-    .stButton > button {
-        background-color: #007bff;
-        color: white;
-        border-radius: 8px;
-        padding: 0.6rem 1.2rem;
-        font-weight: 600;
-        border: none;
-        transition: all 0.3s ease;
-    }
-    .stButton > button:hover {
-        background-color: #0056b3;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .stButton > button:active {
-        transform: translateY(0);
-    }
-
-    /* Estilos dos inputs */
-    .stTextInput > div > div > input {
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        padding: 0.5rem 1rem;
-        transition: all 0.3s ease;
-    }
-    .stTextInput > div > div > input:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-    }
-
-    /* Estilos dos selects */
-    .stSelectbox > div > div > select {
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        padding: 0.5rem 1rem;
-        transition: all 0.3s ease;
-    }
-    .stSelectbox > div > div > select:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-    }
-
-    /* Estilos dos containers */
-    .css-1v0mbdj.ebxwdo61, .css-1629p8f.eknhn3m1 {
-        background-color: #ffffff;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-    }
-    .css-1v0mbdj.ebxwdo61:hover, .css-1629p8f.eknhn3m1:hover {
-        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-        transform: translateY(-2px);
-    }
-
-    /* Estilos dos sliders */
-    .stSlider > div > div > div > div {
-        background-color: #007bff;
-    }
-    .stSlider > div > div > div > div > div {
-        background-color: #ffffff;
-        border: 2px solid #007bff;
-    }
-
-    /* Estilos dos expanders */
-    .streamlit-expanderHeader {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-        font-weight: 600;
-    }
-    .streamlit-expanderHeader:hover {
-        background-color: #e9ecef;
-    }
-</style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="Resumo de Transcrição de Vídeo", page_icon="🎥", layout="wide")
 
 
 def get_openai_client():
@@ -164,26 +41,12 @@ def get_openai_client():
     return st.session_state.openai_client
 
 def validate_openai_api_key(api_key):
-    if not api_key:
-        st.error("A chave da API OpenAI não pode estar vazia")
-        return False
-    
-    if not api_key.startswith("sk-"):
-        st.error("Formato de chave API inválido. A chave deve começar com 'sk-'")
-        return False
-
     try:
         test_client = OpenAI(api_key=api_key)
         test_client.models.list()
         return True
     except Exception as e:
-        error_message = str(e).lower()
-        if "invalid api key" in error_message:
-            st.error("Chave API inválida. Por favor, verifique se a chave está correta")
-        elif "expired" in error_message:
-            st.error("Chave API expirada. Por favor, gere uma nova chave")
-        else:
-            st.error(f"Erro ao validar a chave API do OpenAI: {str(e)}")
+        st.error(f"Erro ao validar a chave API do OpenAI: {str(e)}")
         return False
 
 def check_password():
@@ -191,123 +54,66 @@ def check_password():
         st.session_state["authentication_status"] = False
 
     if not st.session_state["authentication_status"]:
-        col1, col2 = st.columns([1, 2])
-        
-        with col1:
-            st.image("images/logo.png", width=200)
-        
-        with col2:
-            st.markdown("""
-            <div style='background-color: #f8f9fa; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
-                <h2 style='color: #007bff; margin-bottom: 1rem;'>🔐 Sistema de Transcrição</h2>
-                <p style='color: #6c757d;'>Por favor, faça login para continuar.</p>
-            </div>
-            """, unsafe_allow_html=True)
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        openai_api_key = st.text_input("OpenAI API Key", type="password")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        with st.form(key="login_form", clear_on_submit=True):
-            cols = st.columns([1, 2, 1])
-            with cols[1]:
-                username = st.text_input("👤 Usuário", placeholder="Digite seu usuário")
-                password = st.text_input("🔑 Senha", type="password", placeholder="Digite sua senha")
-                openai_api_key = st.text_input("🔑 OpenAI API Key", type="password", placeholder="sk-...")
-                
-                col1, col2, col3 = st.columns([1, 2, 1])
-                with col2:
-                    submit = st.form_submit_button("Entrar", use_container_width=True)
-                    
-            if submit:
-                if username in st.secrets["users"]:
-                    if st.secrets["users"][username]["password"] == password:
-                        if validate_openai_api_key(openai_api_key):
-                            st.session_state["authentication_status"] = True
-                            st.session_state["username"] = username
-                            st.session_state["user_role"] = st.secrets["users"][username]["role"]
-                            st.session_state["openai_api_key"] = openai_api_key
-                            st.success("✅ Login realizado com sucesso!")
-                            st.balloons()
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            st.error("❌ Chave da OpenAI API inválida")
+        if st.button("Login"):
+            if username in st.secrets["users"]:
+                if st.secrets["users"][username]["password"] == password:
+                    if validate_openai_api_key(openai_api_key):
+                        st.session_state["authentication_status"] = True
+                        st.session_state["username"] = username
+                        st.session_state["user_role"] = st.secrets["users"][username]["role"]
+                        st.session_state["openai_api_key"] = openai_api_key
+                        st.success("Login com sucesso")
+                        st.rerun()  # Força o recarregamento da página após o login bem-sucedido
                     else:
-                        st.error("❌ Senha inválida")
+                        st.error("Chave da OpenAI API inválida")
                 else:
-                    st.error("❌ Usuário não encontrado")
-        
-        st.markdown("""
-        <div style='position: fixed; bottom: 20px; width: 100%; text-align: center;'>
-            <p style='color: #6c757d; font-size: 0.8em;'>Desenvolvido por Matech 3D</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
+                    st.error("Senha inválida")
+            else:
+                st.error("Usuário não encontrado")
         return False
     return True
 
 # Função para configurar o slidebar
 def sidebar():
     with st.sidebar:
-        st.image("images/logo.png", width=150)
-        
-        # Cabeçalho com estilo
-        st.markdown("""
-        <div style='background-color: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
-            <h3 style='color: #007bff; margin: 0;'>Assistente de Transcrição</h3>
-            <p style='color: #6c757d; margin: 0;'>Bem-vindo(a), {}!</p>
-        </div>
-        """.format(st.session_state.get('username', 'Usuário')), unsafe_allow_html=True)
+        st.image("images/escola_nomade.jpg", width=200)
+        st.title("Assistente de Transcrição de Vídeo")
+        st.header("SEJA BEM VINDO!")
+        st.write(f"Olá, {st.session_state.get('username', 'Usuário')}!")
 
-        # Seção de Configurações
-        st.markdown("""
-        <div style='background-color: #ffffff; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
-            <h4 style='color: #007bff; margin-bottom: 1rem;'>⚙️ Configurações do Modelo</h4>
-        </div>
-        """, unsafe_allow_html=True)
-
+        # Configurações do modelo OpenAI
+        st.write("**Ajuste de parâmetros do modelo da OpenAI**")
         model = st.selectbox(
-            "🤖 Modelo OpenAI",
-            ["gpt-4", "gpt-3.5-turbo"],
+            "Modelo OpenAI",
+            ["gpt-4o-mini", "gpt-4o-mini-2024-07-18"],
             key="model_selectbox"
         )
-        with st.expander("🎯 Parâmetros Avançados", expanded=False):
-            max_tokens = st.slider(
-                "Máximo de Tokens",
-                min_value=1000,
-                max_value=32000,
-                value=4000,
-                key="max_tokens_slider",
-                help="Controla o tamanho máximo da resposta"
-            )
-            temperature = st.slider(
-                "Temperatura",
-                0.0, 1.0,
-                0.7,
-                key="temperature_slider",
-                help="Controla a criatividade da resposta (0: mais preciso, 1: mais criativo)"
-            )
+        max_tokens = st.slider(
+            "Máximo de Tokens",
+            4000, 10000,
+            16000,
+            key="max_tokens_slider"
+        )
+        temperature = st.slider(
+            "Temperatura",
+            0.0, 1.0,
+            0.7,
+            key="temperature_slider"
+        )
 
-        # Botão de Logout estilizado
-        st.markdown("<br>", unsafe_allow_html=True)
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("🚪 Logout", use_container_width=True):
-                st.session_state["authentication_status"] = False
-                st.session_state["openai_api_key"] = None
-                st.session_state["username"] = None
-                st.session_state["user_role"] = None
-                st.rerun()
+        if st.button("Logout"):
+            st.session_state["authentication_status"] = False
+            st.session_state["openai_api_key"] = None
+            st.session_state["username"] = None
+            st.session_state["user_role"] = None
+            st.rerun()
 
-        # Rodapé
-        st.markdown("""
-        <div style='background-color: #f8f9fa; padding: 1rem; border-radius: 10px; margin-top: 2rem; text-align: center;'>
-            <p style='color: #6c757d; font-size: 0.9em; margin: 0;'>
-                Desenvolvido por <a href='https://matech3d.com.br/' target='_blank' style='color: #007bff; text-decoration: none;'>Matech 3D</a>
-                <br>
-                <a href='https://www.linkedin.com/in/matheusbnas' target='_blank' style='color: #007bff; text-decoration: none;'>Matheus Bernardes</a>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("[Matheus Bernardes](https://www.linkedin.com/in/matheusbnas)")
+        st.markdown("Desenvolvido por [Matech 3D](https://matech3d.com.br/)")
 
     return model, max_tokens, temperature
 
@@ -375,11 +181,6 @@ def gera_resumo_tldv(transcricao, model, max_tokens, temperature):
 def process_video(video_path_or_url):
     temp_audio_file = None
     try:
-        # Verificar se o FFmpeg está disponível
-        if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'FFmpeg', 'bin', 'ffmpeg.exe')):
-            st.error("FFmpeg não encontrado. Por favor, verifique se o FFmpeg está instalado corretamente.")
-            return None
-
         # Criar um arquivo temporário para o áudio
         temp_audio_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
         temp_audio_file.close()

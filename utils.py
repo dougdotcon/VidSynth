@@ -9,7 +9,7 @@ from io import BytesIO
 from pathlib import Path
 import requests
 from moviepy.editor import VideoFileClip, AudioFileClip
-# Removendo dependência do pydub
+from pydub import AudioSegment
 import srt
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -24,30 +24,6 @@ from googleapiclient.discovery import build
 import pickle
 from google_auth_oauthlib.flow import Flow
 import webbrowser
-
-# Configuração do FFmpeg
-def setup_ffmpeg():
-    try:
-        # Tentar encontrar o FFmpeg no PATH do sistema
-        from moviepy.config import get_setting
-        if get_setting("FFMPEG_BINARY"):
-            return True
-        
-        # Se não encontrar, usar o executável do sistema
-        if os.name == 'nt':  # Windows
-            os.environ["IMAGEIO_FFMPEG_EXE"] = "ffmpeg"
-        else:  # Linux/Mac
-            os.environ["IMAGEIO_FFMPEG_EXE"] = "/usr/bin/ffmpeg"
-        
-        return True
-    except Exception as e:
-        st.error(f"Erro ao configurar FFmpeg: {str(e)}")
-        st.error("Por favor, instale o FFmpeg manualmente e adicione-o ao PATH do sistema")
-        return False
-
-# Inicializar FFmpeg
-setup_ffmpeg()
-
 import re
 
 # CONFIGURAÇÕES GERAIS DE PASTAS
@@ -70,37 +46,30 @@ def split_audio(audio_path, chunk_duration=1200):  # 20 minutos por chunk
     duration = audio.duration
     chunks = []
     
-    try:
-        for start in range(0, int(duration), chunk_duration):
-            end = min(start + chunk_duration, duration)
-            chunk = audio.subclip(start, end)
-            
-            # Usar um nome de arquivo temporário para cada chunk
-            chunk_path = tempfile.NamedTemporaryFile(delete=False, suffix=f'_{start}_{end}.mp3').name
-            
-            # Configurar parâmetros de codificação para controlar o tamanho do arquivo
-            chunk.write_audiofile(
-                chunk_path,
-                codec='libmp3lame',
-                bitrate='64k',
-                ffmpeg_params=['-ac', '1']  # Converter para mono
-            )
-            
+    for start in range(0, int(duration), chunk_duration):
+        end = min(start + chunk_duration, duration)
+        chunk = audio.subclip(start, end)
+        chunk_path = f"{audio_path}_{start}_{end}.mp3"
+        chunk.write_audiofile(chunk_path, bitrate="64k")  # Reduzindo a qualidade para manter o tamanho sob controle
+        
+        # Verificar o tamanho do arquivo
+        file_size = os.path.getsize(chunk_path)
+        if file_size > 25 * 1024 * 1024:  # Se o arquivo for maior que 25 MB
+            os.remove(chunk_path)  # Remove o arquivo grande
+            # Divide este chunk em dois menores
+            mid = (start + end) // 2
+            chunk1 = audio.subclip(start, mid)
+            chunk2 = audio.subclip(mid, end)
+            chunk_path1 = f"{audio_path}_{start}_{mid}.mp3"
+            chunk_path2 = f"{audio_path}_{mid}_{end}.mp3"
+            chunk1.write_audiofile(chunk_path1, bitrate="64k")
+            chunk2.write_audiofile(chunk_path2, bitrate="64k")
+            chunks.append((chunk_path1, start))
+            chunks.append((chunk_path2, mid))
+        else:
             chunks.append((chunk_path, start))
-            
-    except Exception as e:
-        logger.error(f"Erro ao dividir áudio: {str(e)}")
-        # Limpar quaisquer arquivos temporários criados
-        for chunk_path, _ in chunks:
-            try:
-                if os.path.exists(chunk_path):
-                    os.remove(chunk_path)
-            except:
-                pass
-        raise
-    finally:
-        audio.close()
     
+    audio.close()
     return chunks
  
 ###############################################
