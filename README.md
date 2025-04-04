@@ -1,9 +1,9 @@
-# Projeto de Transcrição e Resumo de Vídeo
+# VidSynth
 
 <div align="center">
-  <img src="images/logo.png" alt="Logo do Projeto" width="220"/>
-  <h1>Transcrição e Resumo de Vídeo</h1>
-  <p><strong>Uma aplicação para transcrição automática e geração de resumos de vídeos usando IA</strong></p>
+  <img src="images/logo.png" alt="VidSynth Logo" width="220"/>
+  <h1>VidSynth</h1>
+  <p><strong>Transforme seus vídeos em texto inteligente: transcrição automática e resumos com IA</strong></p>
 </div>
 
 <div align="center">
@@ -18,7 +18,7 @@
 
 ## 📋 Sobre o Projeto
 
-Esta aplicação Streamlit oferece uma solução completa para transcrição e resumo de vídeos, permitindo que usuários:
+VidSynth é uma aplicação inovadora que transforma o conteúdo de vídeos em texto estruturado e resumos inteligentes. Usando tecnologias avançadas de IA, permite que usuários:
 
 - Façam upload de vídeos em diferentes formatos
 - Obtenham transcrições automáticas usando OpenAI Whisper
@@ -100,7 +100,7 @@ REDIRECT_URI=http://localhost:8501/
 ## 📁 Estrutura do Projeto
 
 ```
-projeto_trancricao_video/
+vidsynth/
 ├── transcrita_video.py    # Aplicação principal
 ├── utils.py              # Funções auxiliares
 ├── requirements.txt      # Dependências
@@ -174,3 +174,17 @@ Para mais detalhes, visite: [Creative Commons BY-NC-ND 4.0](http://creativecommo
     </td>
   </tr>
 </table>
+
+---
+
+## 📬 Contato
+
+Matheus Bernardes Costa do Nascimento - [E-mail](mailto:matheusbnas@gmail.com)
+
+Link do projeto: [https://github.com/matheusbnas/projeto_trancricao_video](https://github.com/matheusbnas/projeto_trancricao_video)
+
+---
+
+<div align="center">
+  <sub>VidSynth: Transformando o audiovisual em conhecimento acessível.</sub>
+</div>
