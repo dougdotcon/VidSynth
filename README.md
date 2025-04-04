@@ -174,17 +174,3 @@ Para mais detalhes, visite: [Creative Commons BY-NC-ND 4.0](http://creativecommo
     </td>
   </tr>
 </table>
-
----
-
-## 📬 Contato
-
-Matheus Bernardes Costa do Nascimento - [E-mail](mailto:matheusbnas@gmail.com)
-
-Link do projeto: [https://github.com/matheusbnas/projeto_trancricao_video](https://github.com/matheusbnas/projeto_trancricao_video)
-
----
-
-<div align="center">
-  <sub>Construído com ❤️ para facilitar a extração de conhecimento de vídeos.</sub>
-</div>
