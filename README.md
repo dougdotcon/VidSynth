@@ -9,8 +9,7 @@
 <div align="center">
   <img src="https://img.shields.io/badge/Python-3.7+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
   <img src="https://img.shields.io/badge/Streamlit-1.x-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit"/>
-  <img src="https://img.shields.io/badge/OpenAI-Whisper-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI"/>
-  <img src="https://img.shields.io/badge/OAuth-Google-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google OAuth"/>
+  <img src="https://img.shields.io/badge/OpenRouter-Quasar-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenRouter"/>
   <img src="https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey?style=for-the-badge" alt="License"/>
 </div>
 
@@ -18,39 +17,32 @@
 
 ## 📋 Sobre o Projeto
 
-VidSynth é uma aplicação inovadora que transforma o conteúdo de vídeos em texto estruturado e resumos inteligentes. Usando tecnologias avançadas de IA, permite que usuários:
+VidSynth transforma vídeos em texto estruturado e resumos inteligentes usando IA. Permite:
 
-- Façam upload de vídeos em diferentes formatos
-- Obtenham transcrições automáticas usando OpenAI Whisper
-- Gerem resumos no estilo tl;dv
-- Sincronizem o resumo com o vídeo através de timestamps
-- Exportem transcrições e resumos em formato SRT
+- Upload de vídeos locais (mp4, avi, mov)
+- Transcrição automática com Whisper
+- Geração de resumos com OpenRouter (modelo Quasar)
+- Exportação em SRT
+- Navegação sincronizada com timestamps
 
-Ideal para estudantes, profissionais e criadores de conteúdo que precisam extrair informações importantes de vídeos de forma rápida e eficiente.
+Ideal para estudantes, profissionais e criadores de conteúdo.
 
 ---
 
 ## 🚀 Funcionalidades
 
-### 📹 Gestão de Vídeos
-- **Upload flexível**: Suporte para formatos mp4, avi e mov
-- **Upload de transcrição**: Possibilidade de usar arquivo txt existente
-- **Visualização integrada**: Player de vídeo com controles
+### 📹 Upload de Vídeos
+- Upload local de arquivos `.mp4`, `.avi`, `.mov`
+- Player integrado para visualização
 
-### 🎯 Processamento de Áudio
-- **Transcrição automática**: Integração com OpenAI Whisper
-- **Processamento em lote**: Suporte para múltiplos vídeos
-- **Alta precisão**: Reconhecimento preciso de fala
+### 🎯 Processamento
+- Transcrição automática com Whisper
+- Resumos automáticos via OpenRouter Quasar
+- Exportação em SRT
 
-### 📝 Geração de Conteúdo
-- **Resumos automáticos**: Geração de resumos estilo tl;dv
-- **Timestamps interativos**: Navegação sincronizada no vídeo
-- **Exportação**: Download em formato SRT
-
-### 🔐 Segurança e Autenticação
-- **Login Google**: Autenticação via OAuth
-- **Dados seguros**: Proteção das informações do usuário
-- **Gestão de sessão**: Controle de acesso seguro
+### 🔐 Autenticação
+- Login com usuário e senha definidos no `secrets.toml`
+- Usuário padrão: **admin / admin123**
 
 ---
 
@@ -58,95 +50,63 @@ Ideal para estudantes, profissionais e criadores de conteúdo que precisam extra
 
 ```bash
 # Clone o repositório
-git clone https://github.com/matheusbnas/projeto_trancricao_video.git
-cd projeto_trancricao_video
+git clone https://github.com/seu_usuario/seu_repositorio.git
+cd seu_repositorio
 
 # Instale as dependências
 pip install -r requirements.txt
+```
 
-# Configure as variáveis de ambiente (.env)
-OPENAI_API_KEY=sua_chave_api_do_openai
-GOOGLE_CLIENT_ID=seu_client_id_do_google
-GOOGLE_CLIENT_SECRET=seu_client_secret_do_google
-REDIRECT_URI=http://localhost:8501/
+---
+
+## ⚙️ Configuração
+
+Abra o arquivo `.streamlit/secrets.toml` e configure sua API key do OpenRouter:
+
+```toml
+OPENROUTER_API_KEY = "sua_api_key_do_openrouter"
+
+[users]
+[users.admin]
+password = "admin123"
+role = "admin"
 ```
 
 ---
 
 ## 💻 Como Usar
 
-1. **Inicie a aplicação**:
-   ```bash
-   streamlit run transcrita_video.py
-   ```
+```bash
+streamlit run app.py
+```
 
-2. **Acesse no navegador**: 
-   - Abra `http://localhost:8501`
-   - Faça login com sua conta Google
+Acesse no navegador: [http://localhost:8501](http://localhost:8501)
 
-3. **Processe seu vídeo**:
-   - Faça upload do vídeo
-   - Opcional: forneça arquivo de transcrição
-   - Aguarde o processamento
-   - Visualize e navegue pelo conteúdo
+Faça login com o usuário e senha configurados.
 
-4. **Exporte os resultados**:
-   - Baixe o resumo
-   - Baixe a transcrição completa
-   - Formato SRT com timestamps
+Faça upload do seu vídeo, aguarde a transcrição e gere o resumo.
 
 ---
 
 ## 📁 Estrutura do Projeto
 
 ```
-vidsynth/
-├── transcrita_video.py    # Aplicação principal
-├── utils.py              # Funções auxiliares
-├── requirements.txt      # Dependências
-├── images/              # Recursos visuais
-│   └── logo.png
-└── .env                 # Configurações (não versionado)
+VidSynth/
+├── app.py                  # Aplicação principal
+├── utils.py                # Funções auxiliares
+├── requirements.txt        # Dependências
+├── .streamlit/
+│   └── secrets.toml        # Segredos e usuários
+├── images/
+│   └── logo.png            # Logo do app
+└── .env                    # (opcional, não usado atualmente)
 ```
-
----
-
-## 🧪 Testes
-
-```bash
-# Execute os testes
-python -m pytest
-```
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Para contribuir:
-
-1. Fork o projeto
-2. Crie sua Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a Branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
 
 ---
 
 ## 📄 Licença
 
 Este projeto está licenciado sob a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License (CC BY-NC-ND 4.0).
-
-<div align="center">
-  <img src="https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg" alt="CC BY-NC-ND 4.0"/>
-</div>
-
-Permissões:
-- ✅ Compartilhamento
-- ❌ Uso comercial
-- ❌ Modificações
-- ❌ Distribuição de modificações
-
-Para mais detalhes, visite: [Creative Commons BY-NC-ND 4.0](http://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 ---
 

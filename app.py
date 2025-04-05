@@ -15,39 +15,79 @@ _ = load_dotenv(find_dotenv())
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configurações do Vimeo
-VIMEO_ACCESS_TOKEN = st.secrets["VIMEO_ACCESS_TOKEN"]
-VIMEO_CLIENT_ID = st.secrets["VIMEO_CLIENT_ID"]
-VIMEO_CLIENT_SECRET = st.secrets["VIMEO_CLIENT_SECRET"]
+# (Removido: configurações e cliente Vimeo, pois não serão usados)
 
-# Inicializar cliente Vimeo
-vimeo_client = vimeo.VimeoClient(
-    token=VIMEO_ACCESS_TOKEN,
-    key=VIMEO_CLIENT_ID,
-    secret=VIMEO_CLIENT_SECRET
-)
+st.set_page_config(page_title="VidSynth", page_icon="🎥", layout="wide")
 
-st.set_page_config(page_title="Resumo de Transcrição de Vídeo", page_icon="🎥", layout="wide")
+st.markdown("""
+<style>
+/* Fundo principal */
+.stApp {
+    background-color: #FFFFE0;
+}
 
+/* Sidebar */
+.css-1d391kg {
+    background-color: #FFD700 !important;
+}
+
+/* Containers e caixas */
+.css-1r6slb0, .css-12oz5g7 {
+    background-color: #FFF8DC !important;
+}
+
+/* Botões */
+.stButton > button {
+    background-color: #FFD700 !important;
+    color: #000000 !important;
+    border: 1px solid #B8860B !important;
+}
+
+/* Inputs e selectboxes */
+.stTextInput > div > div > input,
+.stSelectbox > div > div > div {
+    background-color: #FFFACD !important;
+    color: #000000 !important;
+}
+
+/* Headers e texto */
+h1, h2, h3, p {
+    color: #000000 !important;
+}
+
+/* Abas */
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #FFD700 !important;
+}
+
+.stTabs [data-baseweb="tab"] {
+    color: #000000 !important;
+}
+
+/* Upload de arquivo */
+.stUploadButton > button {
+    background-color: #FFD700 !important;
+    color: #000000 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 def get_openai_client():
     if "openai_client" not in st.session_state:
-        api_key = st.session_state.get("openai_api_key")
+        api_key = st.secrets.get("OPENROUTER_API_KEY")
         if api_key:
-            st.session_state.openai_client = OpenAI(api_key=api_key)
+            st.session_state.openai_client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key
+            )
         else:
-            st.error("Chave da API OpenAI não encontrada. Por favor, faça login novamente.")
+            st.error("Chave da API do OpenRouter não encontrada no secrets.toml.")
             return None
     return st.session_state.openai_client
 
 def validate_openai_api_key(api_key):
-    try:
-        test_client = OpenAI(api_key=api_key)
-        test_client.models.list()
-        return True
-    except Exception as e:
-        st.error(f"Erro ao validar a chave API do OpenAI: {str(e)}")
-        return False
+    # Validação desativada para compatibilidade com OpenRouter
+    return True
 
 def check_password():
     if "authentication_status" not in st.session_state:
@@ -56,16 +96,17 @@ def check_password():
     if not st.session_state["authentication_status"]:
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
-        openai_api_key = st.text_input("OpenAI API Key", type="password")
+        # (Removido campo para inserir API Key, pois agora é fixa no secrets.toml)
 
         if st.button("Login"):
             if username in st.secrets["users"]:
                 if st.secrets["users"][username]["password"] == password:
-                    if validate_openai_api_key(openai_api_key):
+                    # Valida a API Key do OpenRouter do secrets.toml
+                    api_key = st.secrets.get("OPENROUTER_API_KEY")
+                    if validate_openai_api_key(api_key):
                         st.session_state["authentication_status"] = True
                         st.session_state["username"] = username
                         st.session_state["user_role"] = st.secrets["users"][username]["role"]
-                        st.session_state["openai_api_key"] = openai_api_key
                         st.success("Login com sucesso")
                         st.rerun()  # Força o recarregamento da página após o login bem-sucedido
                     else:
@@ -80,16 +121,16 @@ def check_password():
 # Função para configurar o slidebar
 def sidebar():
     with st.sidebar:
-        st.image("images/escola_nomade.jpg", width=200)
-        st.title("Assistente de Transcrição de Vídeo")
+        st.image("images/logo.png", width=200)
+        st.title("VidSynth")
         st.header("SEJA BEM VINDO!")
         st.write(f"Olá, {st.session_state.get('username', 'Usuário')}!")
 
         # Configurações do modelo OpenAI
-        st.write("**Ajuste de parâmetros do modelo da OpenAI**")
+        st.write("**Ajuste de parâmetros do modelo Quasar**")
         model = st.selectbox(
-            "Modelo OpenAI",
-            ["gpt-4o-mini", "gpt-4o-mini-2024-07-18"],
+            "Modelo OpenRouter",
+            ["openrouter/quasar-alpha"],
             key="model_selectbox"
         )
         max_tokens = st.slider(
@@ -112,8 +153,8 @@ def sidebar():
             st.session_state["user_role"] = None
             st.rerun()
 
-        st.markdown("[Matheus Bernardes](https://www.linkedin.com/in/matheusbnas)")
-        st.markdown("Desenvolvido por [Matech 3D](https://matech3d.com.br/)")
+        # (Removido crédito Matheus Bernardes)
+        st.write("Desenvolvido por Matech 3D")
 
     return model, max_tokens, temperature
 
@@ -169,7 +210,11 @@ def gera_resumo_tldv(transcricao, model, max_tokens, temperature):
                     {part}"""}
                 ],
                 max_tokens=max_tokens,
-                temperature=temperature
+                temperature=temperature,
+                extra_headers={
+                    "HTTP-Referer": "http://localhost",
+                    "X-Title": "VidSynth"
+                }
             )
             resumo_completo += resposta.choices[0].message.content + "\n\n"
         
@@ -237,127 +282,14 @@ def process_video(video_path_or_url):
 ########################################
 #FUNÇÕES DE TRANSCRIÇÃO DE VIDEO DO VIMEO
 ########################################
-def transcribe_vimeo_video(video_link):
-    client = get_openai_client()
-    if not client:
-        return None
-
-    try:
-        # Baixar o vídeo em um arquivo temporário
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
-            response = requests.get(video_link, stream=True)
-            response.raise_for_status()
-            for chunk in response.iter_content(chunk_size=8192):
-                temp_file.write(chunk)
-            temp_file_path = temp_file.name
-
-        # Transcrever o vídeo
-        with open(temp_file_path, 'rb') as video_file:
-            transcription = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=video_file,
-                response_format="srt",
-                language="pt"
-            )
-
-        # Remover o arquivo temporário
-        os.remove(temp_file_path)
-
-        return transcription
-    except Exception as e:
-        logger.exception(f"Erro ao transcrever vídeo do Vimeo: {str(e)}")
-        st.error(f"Erro ao transcrever vídeo: {str(e)}")
-        return None
-
-def process_vimeo_video(vimeo_url, model, max_tokens, temperature):
-    try:
-        with st.spinner("Obtendo informações do vídeo do Vimeo..."):
-            video_link = get_vimeo_video_link(vimeo_url, vimeo_client)
-            if not video_link:
-                st.error("Não foi possível obter o link do vídeo do Vimeo.")
-                return
-
-        with st.spinner("Transcrevendo vídeo..."):
-            srt_content = transcribe_vimeo_video(video_link)
-            if not srt_content:
-                st.error("Não foi possível gerar a transcrição do vídeo do Vimeo.")
-                return
-
-        st.success("Transcrição automática concluída!")
-        process_transcription(srt_content, model, max_tokens, temperature, vimeo_url)
-
-    except Exception as e:
-        logger.exception(f"Ocorreu um erro ao processar o vídeo do Vimeo: {str(e)}")
-        st.error(f"Ocorreu um erro ao processar o vídeo do Vimeo: {str(e)}")
+# (Removido: funções para processar vídeos do Vimeo, pois não serão usados)
 
 ########################################
 #FUNÇÕES DE TRANSCRIÇÃO DE VIDEO DO YOUTUBE
 ########################################
-def extract_youtube_video_id(url):
-    # Função para extrair o ID do vídeo do YouTube da URL
-    pattern = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.+)'
-    match = re.search(pattern, url)
-    return match.group(1) if match else None
+# (Removido: funções para processar vídeos do YouTube, pois não serão usados)
 
-def process_youtube_video(video_id, model, max_tokens, temperature):
-    try:
-        youtube = get_authenticated_service()
-        
-        with st.spinner("Obtendo informações do vídeo do YouTube..."):
-            video_details = get_video_details(youtube, video_id)
-            if not video_details:
-                st.error("Não foi possível obter informações do vídeo do YouTube.")
-                return
-
-            video_url = get_video_download_url(youtube, video_id)
-            if not video_url:
-                st.error("Não foi possível obter o link do vídeo do YouTube.")
-                return
-
-        with st.spinner("Transcrevendo vídeo..."):
-            srt_content = transcribe_youtube_video(video_url)
-            if not srt_content:
-                st.error("Não foi possível gerar a transcrição do vídeo do YouTube.")
-                return
-
-        st.success("Transcrição automática concluída!")
-        process_transcription(srt_content, model, max_tokens, temperature, video_url)
-
-    except Exception as e:
-        logger.exception(f"Ocorreu um erro ao processar o vídeo do YouTube: {str(e)}")
-        st.error(f"Ocorreu um erro ao processar o vídeo do YouTube: {str(e)}")
-
-def transcribe_youtube_video(video_url):
-    client = get_openai_client()
-    if not client:
-        return None
-
-    try:
-        # Baixar o vídeo em um arquivo temporário
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
-            response = requests.get(video_url, stream=True)
-            response.raise_for_status()
-            for chunk in response.iter_content(chunk_size=8192):
-                temp_file.write(chunk)
-            temp_file_path = temp_file.name
-
-        # Transcrever o vídeo
-        with open(temp_file_path, 'rb') as video_file:
-            transcription = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=video_file,
-                response_format="srt",
-                language="pt"
-            )
-
-        # Remover o arquivo temporário
-        os.remove(temp_file_path)
-
-        return transcription
-    except Exception as e:
-        logger.exception(f"Erro ao transcrever vídeo do YouTube: {str(e)}")
-        st.error(f"Erro ao transcrever vídeo: {str(e)}")
-        return None
+# (Removido: função para transcrever vídeos do YouTube, pois não será usada)
     
 ########################################
 #FUNÇÕES DE PROCESSO DE TRANSCRIÇÃO EM SRT E PDF
@@ -407,23 +339,27 @@ def generate_summarized_srt_from_full(srt_content, client, model):
         response = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", 
+                {"role": "system",
                 "content": """Você é um especialista em criar resumos estruturados em português do Brasil.
                 Para cada segmento, forneça um resumo EXATAMENTE neste formato:
-
+        
                 Título do tópico: Explicação concisa e direta do conteúdo.
-
+        
                 O título deve ser curto e direto, seguido de dois pontos.
                 A explicação deve ser uma única frase clara e informativa.
                 Cada resumo deve ter exatamente uma linha com o título e a explicação.
                 
                 Exemplo exato do formato:
                 Curso Intensivo sobre Nietzsche: O curso foca em uma das obras mais significativas de Nietzsche, considerada por alguns como uma das maiores contribuições da humanidade."""},
-                {"role": "user", 
+                {"role": "user",
                 "content": f"Resuma este segmento no formato especificado: {chunk_text}"}
             ],
             max_tokens=150,
-            temperature=0.4
+            temperature=0.4,
+            extra_headers={
+                "HTTP-Referer": "http://localhost",
+                "X-Title": "VidSynth"
+            }
         )
         
         summary = response.choices[0].message.content.strip()
